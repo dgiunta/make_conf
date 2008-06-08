@@ -32,7 +32,7 @@ Beyond that, the strategy class can operate however you want. One particularly n
 h3. Example Strategy Class
 
 <pre>
-<code>
+<code rel='ruby'>
   class ApacheVHost < ConfTemplate
     
     # One accessor for each variable in the template.
