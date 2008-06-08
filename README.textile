@@ -1,0 +1,111 @@
+*This is still VERY MUCH in progress.*
+
+h1. Conf File Generator
+
+h2. What is this all about
+
+Creating conf files for a new site can be tedious. And often times, at least with Apache virtual host conf files, I've found that you almost always start with an existing conf file, and then modify it to suit your needs. After having gone through the process of creating these conf files and having missed changing a setting or two on more than one occasion, I felt it would be helpful to create a generator to make mine and my co-worker's lives easier.
+
+My specs were fairly simple at first -- the generator should ask the user questions and then take the answers and plug them into the areas that should be unique, and spit out the appropriate conf file. However, after running my little program a few dozen times in testing, I realized, that there are probably some sensible defaults that could be set up front, and thus reduce the number of questions getting asked. Also, I realized that you might be setting up more than one site... so, having a config file that contained all the sites you've set up that's easily run in a batch would be helpful too. And then, as I started abstracting, and refactoring my code, I realized that this approach could be used for any type of commonly generated config file, and that it might be useful if the system was just a mechanism for asking a user questions and spitting out properly formatted files using the entered data. And finally, I found myself wanting to make these "template" conf files operate like plugins where anyone could create a new template, and the appropriate questions required to fill out that template, and the code I've developed should be able to aggregate them to the user...
+
+So, now my plan is to package this code as a gem, that, upon install, creates a new executable file in the user's /usr/bin directory, as well as a hidden directory (~/.conf_file_templates) to hold all the installed conf file templates and associated installation scripts, as well as any default config files.
+
+
+h2. About the templates
+
+I've modeled the template installation process after the Strategy and Template patterns from the _Design Patterns in Ruby_ book. So, if you're familiar with those concepts, you'll get what's going on rather quickly.
+
+Currently, there's a *templates/* directory in the root of this project that's holding the currently installed templates. Inside this directory are a series of files, residing mostly in pairs of similarly named .erb and .rb files.
+
+# The .erb file is an ERB template that will be run with all substitutions in the process of exporting these files.
+# The .rb file is a "strategy" class that is used to create the variables required to fill out the ERB template. This file essentially consists of a set of questions (see the "ask" and "ask_boolean" methods) to be asked of the user (or skipped if the data has already been instantiated--e.g. - from a batch file).
+
+The .rb strategy files have the following requirements:
+# Must inherit from the ConfFile class
+# Must set up attr_accessors for each variable to be output in the ERB template
+# Must set the +template_file+ attribute in an initializer method.
+# Must implement a +get_data_from_user+ method that will be called at runtime that gets all the appropriate information from the user, as well as set up any default data such as an +output_file_name+.
+# Must implement a series of question methods that the +get_data_from_user+ method will run through.
+
+Beyond that, the strategy class can operate however you want. One particularly nice trick, is using inheritance to set up families of classes that can inherit the questions as well as the template variables. For instance, the ApacheVHost class provides a base set of questions and variables for all templates that inherit from it. That way, each template doesn't have to ask redundant questions.
+
+h3. Example Strategy Class
+
+<code>
+  class ApacheVHost < ConfTemplate
+    
+    # One accessor for each variable in the template.
+    attr_accessor :server_port, :url, :document_root, :app_name, :https
+    
+    def initialize
+      # This sets the name of the template that's associated with this particular class.
+      # Only supply the filename, not the direct path to the file, as that will get set dynamically
+      # by the ConfTemplate class.
+      #
+      # This particular class doesn't have a template file attached to it, because it's the base class
+      # for other more specific templates (ie - ApacheVHostPhpConf, ApacheVHostRailsMongrelClusterConf, etc.)
+      # self.template_file = 'apache_v_host_conf.erb'
+    end
+  
+    def get_data_from_user(context)
+    
+      # Series of method calls that will get the appropriate data unless the variable is already set.
+      get_app_name if app_name.nil?
+      get_url if url.nil?
+      get_https if https.nil?
+      get_server_port if server_port.nil?
+      get_document_root if document_root.nil?
+      
+      # This set's the output_file_name for this template.
+      context.output_file_name = "#{app_name}.conf"
+    end
+  
+    # The following are each of the question methods that will get called if these variables are not yet set.
+    def get_app_name
+      # The "ask" method is a helper method that will pose the supplied question to the user 
+      # and return the user's response.
+      @app_name = ask "What is your site named?"
+    end
+    
+    def get_url
+      @url = ask "What is the url for your site?"
+    end
+  
+    def get_https
+      # The ask_boolean method asks the user the supplied question, and then returns true 
+      # if the user replies (y)es and false if the user replies with anything else.
+      @https = ask_boolean "Will this site use https?"
+    end
+  
+    def get_server_port
+      # The "ask" method takes a boolean for whether or not to format the question as a "one-liner"
+      # (default is true), and an array of "options".
+      #
+      # For a one-liner, the options are more like examples listed in parenthesis after the question,
+      # whereas, with a multi-line question, the options are listed with numbers for the user to select
+      # from. In a multi-line question, the return value will either be the selected option, or nil, and with
+      # a one-liner, it will be whatever the user enters.
+      @server_port = ask "What port will your site be served from?", true, %w(80 81 82 etc.)
+    end
+  
+    def get_document_root
+      @document_root = ask "Where on the server will you store the files for this site?"
+    end
+  end
+</code>
+
+
+h2. Current shape of this code
+
+Well, as mentioned at the top of this document, this code is in the VERY early stages. And it's grown very organically. What started out as one simple script, turned into a series of classes and template files all working in concert with each other. 
+
+In addition, many of the features listed above have been kinda started... and overall the script is functional, but not yet in such a solid state that it would feel "done".
+
+
+h2. So how do you check out the current state of the code?
+
+For now, you'll want to change into the directory containing this README file, and then run the following command:
+
+  <code>ruby make_conf.rb</code>
+  
+That will begin walking you through a series of questions to export out an Apache virtual host file. Right now there are conf files for both a php site, and a rails site that uses a mongrel cluster.

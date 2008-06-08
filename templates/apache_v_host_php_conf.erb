@@ -1,0 +1,30 @@
+<VirtualHost *:<%= @server_port %>>
+  ServerName <%= @url %>
+  DocumentRoot <%= @document_root %>current
+
+  <Directory "<%= @document_root %>current">
+    Options FollowSymLinks
+    AllowOverride None
+    Order Allow,deny
+    Allow from all
+  </Directory>
+
+  #LoadModule php5_module modules/libphp5.so
+
+  # Cause the PHP interpreter to handle files with a .php extension.
+  AddHandler php5-script .php
+  AddType text/html .php
+
+  # Add index.php to the list of files that will be served as directory indexes.
+  DirectoryIndex index.html index.php
+
+  SetEnv force-proxy-request-1.0 1
+  SetEnv proxy-nokeepalive 1
+  
+  <% if @https %>
+  RequestHeader set X_FORWARDED_PROTO 'https'
+  <% end %>
+
+  ErrorLog logs/<%= @app_name %>_errors_log
+  CustomLog logs/<%= @app_name %>_log combined
+</VirtualHost>

@@ -1,0 +1,6 @@
+-
+  :app_name: blah
+  :template: ApacheVHostPhpConf
+  :document_root: '/var/www/sites'
+  :url: blah.com
+  :https: true
