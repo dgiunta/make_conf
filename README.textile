@@ -31,6 +31,7 @@ Beyond that, the strategy class can operate however you want. One particularly n
 
 h3. Example Strategy Class
 
+<pre>
 <code>
   class ApacheVHost < ConfTemplate
     
@@ -93,7 +94,7 @@ h3. Example Strategy Class
     end
   end
 </code>
-
+</pre>
 
 h2. Current shape of this code
 
