@@ -32,7 +32,7 @@ Beyond that, the strategy class can operate however you want. One particularly n
 h3. Example Strategy Class
 
 <pre>
-<code rel='ruby'>
+<code>
   class ApacheVHost < ConfTemplate
     
     # One accessor for each variable in the template.
@@ -101,6 +101,8 @@ h2. Current shape of this code
 Well, as mentioned at the top of this document, this code is in the VERY early stages. And it's grown very organically. What started out as one simple script, turned into a series of classes and template files all working in concert with each other. 
 
 In addition, many of the features listed above have been kinda started... and overall the script is functional, but not yet in such a solid state that it would feel "done".
+
+Tests. They're, unfortunately, relatively incomplete at this moment. I've written some, of course... however, writing tests that validate command line input is REALLY tricky. If anyone has any suggestions for how I could go about this, please let me know.
 
 
 h2. So how do you check out the current state of the code?
