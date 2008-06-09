@@ -5,7 +5,8 @@ class GenerateConfFile
   attr_accessor :template, :output_file_name, :output_file_dir
   
   def initialize(template, default_config={})
-    default_config.each { |k, v| instance_variable_set("@#{k}", v) }
+    @default_config = default_config
+    @default_config.each { |k, v| instance_variable_set("@#{k}", v) }
     @template = template
   end
     
@@ -22,9 +23,9 @@ class GenerateConfFile
   end
   
   def use_default_config?
-    if @template_config
+    if @default_config[:template_config]
       if ask_boolean("Do you want to use the defaults for this template?")
-        template.load_config(@template_config)
+        template.load_config(@default_config[:template_config])
       end
     end
   end

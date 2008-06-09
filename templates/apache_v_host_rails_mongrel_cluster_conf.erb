@@ -1,8 +1,8 @@
 <VirtualHost *:<%= @server_port %>>
   ServerName <%= @url %>
-  DocumentRoot <%= @document_root %>current/public
+  DocumentRoot <%= @document_root %>/current/public
 
-  <Directory "<%= @document_root %>current/public">
+  <Directory "<%= @document_root %>/current/public">
     Options FollowSymLinks
     AllowOverride None
     Order Allow,deny

@@ -29,6 +29,10 @@ class ApacheVHost < ConfTemplate
   end
   
   def get_document_root
-    @document_root = ask "Where on the server will you store the files for this site?"
+    @document_root = clean_document_root(ask("Where on the server will you store the files for this site?", true, %w(/var/www/sites/)))
+  end
+  
+  def clean_document_root(input)
+    File.join(input.split(/\/|\\/))
   end
 end
